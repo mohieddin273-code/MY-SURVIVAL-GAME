@@ -858,6 +858,16 @@
                 shield: '#aa66ff',
                 glow: '#ff00ff'
             }
+            },
+            Glitch: {
+                name: '👽 Glitch Master',
+                cost: 6769,
+                armor: '#007600',
+                metal: '#001400',
+                cape: '#006200',
+                accent: '#4eff4e',
+                shield: '#14ff14',
+                eyes: '#00ff00'
         };
 
         // ==================== AUDIO ====================
@@ -1770,7 +1780,7 @@
             constructor(wave) {
                 super(wave);
                 this.size = 55 * 1.35;
-                this.health = (400 + wave * 40) * 1.35;
+                this.health = (1500 + wave * 40) * 1.35;
                 this.maxHealth = this.health;
                 this.speed = (1.5 + wave * 0.1) * 1.35;
                 this.damage = (18 + wave * 2) * 1.35;
@@ -1807,7 +1817,7 @@
             constructor(wave) {
                 super(wave);
                 this.size = 90 * 1.35;
-                this.health = (1200 + wave * 100) * 1.35;
+                this.health = (4500 + wave * 100) * 1.35;
                 this.maxHealth = this.health;
                 this.speed = (1 + wave * 0.05) * 1.35;
                 this.damage = (30 + wave * 3) * 1.35;
@@ -1856,7 +1866,7 @@
             constructor(wave) {
                 super(wave);
                 this.size = 150 * 1.35;
-                this.health = (5000 + wave * 200) * 1.35;
+                this.health = (10000 + wave * 200) * 1.35;
                 this.maxHealth = this.health;
                 this.speed = (0.7 + wave * 0.03) * 1.35;
                 this.damage = (60 + wave * 6) * 1.35;
@@ -1907,7 +1917,7 @@
             constructor(wave) {
                 super(wave);
                 this.size = 180 * 1.35;
-                this.health = (20000 + wave * 500) * 1.35;
+                this.health = (45000 + wave * 1000) * 1.35;
                 this.maxHealth = this.health;
                 this.speed = (0.4 + wave * 0.01) * 1.35;
                 this.damage = (150 + wave * 20) * 1.35;
@@ -2629,7 +2639,7 @@
                 }
             });
             
-            ctx.shadowBlur = 0;
+            ctx.shadowBlur = 0.45;
             ctx.globalAlpha = 1;
         }
 
