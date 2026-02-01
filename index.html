@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Knight Survivor - AAA EDITION</title>
+    <title>Knight Survivor</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -37,7 +37,7 @@
             top: 0;
             left: 0;
             pointer-events: none;
-            opacity: 0.7;
+            opacity: 0.75;
         }
         
         /* Performance Stats */
@@ -653,7 +653,7 @@
         
         let gameSettings = {
             audioVolume: 0.3,
-            motionBlur: 0.7,
+            motionBlur: 0.15,
             visualEffects: 1.0
         };
 
@@ -1512,12 +1512,7 @@
                     this.color = '#33cc33';
                     this.shootCooldown = 0;
                     this.range = 400;
-                } else if (rand > 0.4) {
-                    this.type = 'explosion';
-                    this.speed *= 1.2;
-                    this.health *= 1.5;
-                    this.color = '#ff9933';
-                    this.explosionRadius = 150;
+              ;
                 } else {
                     this.type = 'normal';
                     this.color = '#ff6600';
