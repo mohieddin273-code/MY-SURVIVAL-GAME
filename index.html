@@ -1514,8 +1514,8 @@
                     this.range = 400;
                 } else if (rand > 0.4) {
                     this.type = 'explosion';
-                    this.speed *= 1.2;
-                    this.health *= 1.5;
+                    this.speed *= 0.4;
+                    this.health *= 1;
                     this.color = '#ff9933';
                     this.explosionRadius = 150;
                 } else {
@@ -1540,7 +1540,7 @@
                 }
                 
                 // Trail effect for motion blur (especially for fast enemies)
-                if (this.type === 'fast' && this.trail.length > 0 && gameSettings.motionBlur > 0.3) {
+                if (this.type === 'fast' && this.trail.length > 0 && gameSettings.motionBlur > 0.5) {
                     for (let i = this.trail.length - 1; i >= 0; i--) {
                         const trailPart = this.trail[i];
                         ctx.save();
