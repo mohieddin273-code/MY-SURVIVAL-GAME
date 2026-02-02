@@ -204,7 +204,7 @@
         }
         @keyframes fadeIn {
             from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
+            to { opacity: 1; transform: scale(1.2); }
         }
         #levelUpScreen { display: none; }
         #pauseMenu { display: none; }
@@ -670,8 +670,9 @@
             <button id="settingsBtn" style="background:linear-gradient(135deg,#00ccff,#0099ff);">⚙️ SETTINGS</button>
             <div class="controls">
                 <p><strong>WASD</strong> to move • <strong>P</strong> to pause</p>
-                <p><strong>1-5</strong> Activate Abilities • Collect XP • Dominate!</p>
-                <p style="color:#ff0066;">⚡ !OPTIMIZED FOR SMOOTH GAMEPLAY! ⚡</p>
+                <p><strong>1-5</strong> Activate Abilities • <strong>G</strong> Glitch Ability</p>
+                <p>Collect XP • Dominate!</p>
+                <p style="color:#ff0066;">⚡ OPTIMIZED FOR SMOOTH 60 FPS ⚡</p>
             </div>
         </div>
 
@@ -840,7 +841,9 @@
                 startingSpeed: 0,
                 startingHealth: 0,
                 startingDamage: 0,
-                startingRegen: 0
+                startingRegen: 0,
+                xpMultiplier: 0,    // New: +0.15 XP per level, max 5
+                killMultiplier: 0    // New: +0.25 kills multiplier, max 5
             }
         };
 
@@ -934,7 +937,6 @@
                 glow: '#ff00ff',
                 ability: null
             },
-            // NEW SKINS
             dragonknight: {
                 name: '🐉 Dragon Knight',
                 cost: 5000,
@@ -961,7 +963,7 @@
                 shield: '#d8bfd8',
                 ghostly: '#9400d3',
                 ability: {
-                    name: 'Phantom Strafe',
+                    name: 'Phantom Strike',
                     description: 'Teleport to cursor position',
                     key: 'E',
                     cooldown: 10000
@@ -979,10 +981,35 @@
                 wings: '#fff8dc',
                 ability: {
                     name: 'Divine Protection',
-                    description: 'Become invincible for 3 seconds',
+                    description: 'Become invincible for 5 seconds',
                     key: 'Q',
-                    cooldown: 6000,
-                    duration: 3000
+                    cooldown: 60000,
+                    duration: 5000
+                }
+            },
+            glitchboss: {
+                name: '👾 Glitch Boss',
+                cost: 100000,
+                armor: '#000000',
+                metal: '#0f0',
+                cape: '#00f',
+                accent: '#f0f',
+                shield: '#ff0',
+                glitch1: '#ff00ff',
+                glitch2: '#00ffff',
+                glitch3: '#ffff00',
+                glitch4: '#ff0000',
+                glitch5: '#00ff00',
+                glitch6: '#0000ff',
+                glitchTrail: '#ff00ff',
+                glitchCore: '#ffffff',
+                glitchEffect: '#00ffff',
+                ability: {
+                    name: 'Glitch Map',
+                    description: 'Slow all enemies by 80% for 20 seconds',
+                    key: 'G',
+                    cooldown: 120000,
+                    duration: 20000
                 }
             }
         };
@@ -1082,6 +1109,14 @@
                     osc.start();
                     osc.stop(audioCtx.currentTime + 1.5);
                     break;
+                case 'glitch':
+                    osc.frequency.value = 100 * pitch;
+                    osc.type = 'square';
+                    gain.gain.setValueAtTime(0.25 * volume * gameSettings.audioVolume, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 1);
+                    break;
             }
         }
 
@@ -1109,6 +1144,11 @@
         let divineProtectionActive = false;
         let divineProtectionTimer = 0;
         let goldenTrailParticles = [];
+        
+        // Glitch effect variables
+        let glitchEffectActive = false;
+        let glitchEffectTimer = 0;
+        let glitchEffectIntensity = 0;
 
         let playerStats = {
             maxHealth: 100,
@@ -1132,7 +1172,8 @@
             lightningChain: false,
             iceNova: false,
             meteorShower: false,
-            voidRift: false
+            voidRift: false,
+            glitchSlowedEnemies: []
         };
 
         let abilityCooldowns = {
@@ -1159,7 +1200,8 @@
             voidRift: '🌌',
             dragonRoar: '🐉',
             phantomStrike: '👻',
-            divineProtection: '👼'
+            divineProtection: '👼',
+            glitchMap: '👾'
         };
 
         // ==================== MOTION BLUR ====================
@@ -1167,6 +1209,23 @@
         function applyMotionBlur() {
             blurCtx.globalAlpha = gameSettings.motionBlur * 0.15;
             blurCtx.drawImage(canvas, 0, 0);
+            
+            // Add glitch effect overlay if active
+            if (glitchEffectActive) {
+                blurCtx.globalAlpha = 0.3 * glitchEffectIntensity * gameSettings.visualEffects;
+                blurCtx.fillStyle = player?.skin?.glitch1 || '#ff00ff';
+                blurCtx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Add digital noise
+                blurCtx.globalAlpha = 0.1 * glitchEffectIntensity * gameSettings.visualEffects;
+                for (let i = 0; i < 100; i++) {
+                    const x = Math.random() * canvas.width;
+                    const y = Math.random() * canvas.height;
+                    blurCtx.fillStyle = Math.random() > 0.5 ? (player?.skin?.glitch2 || '#00ffff') : (player?.skin?.glitch3 || '#ffff00');
+                    blurCtx.fillRect(x, y, 2, 2);
+                }
+            }
+            
             blurCtx.globalAlpha = 1;
         }
 
@@ -1250,12 +1309,13 @@
             }
             
             // Skin abilities
-            if (player.skin.ability) {
+            if (player && player.skin && player.skin.ability) {
                 abilityHotbar.push({
                     id: 'skinAbility',
                     name: player.skin.ability.name,
                     icon: player.skin.id === 'dragonknight' ? '🐉' : 
-                           player.skin.id === 'phantom' ? '👻' : '👼',
+                           player.skin.id === 'phantom' ? '👻' : 
+                           player.skin.id === 'angel' ? '👼' : '👾',
                     cooldown: skinAbilityCooldown,
                     maxCooldown: player.skin.ability.cooldown,
                     key: player.skin.ability.key
@@ -1299,6 +1359,21 @@
                     <div class="ability-cooldown" style="background:rgba(0,0,0,0.5);">${Math.ceil((divineProtectionTimer)/1000)}s</div>
                 `;
                 hotbar.appendChild(protectionSlot);
+            }
+            
+            // Add special indicator for Glitch Map if active
+            if (glitchEffectActive) {
+                const glitchSlot = document.createElement('div');
+                glitchSlot.className = 'ability-slot';
+                glitchSlot.style.borderColor = '#ff00ff';
+                glitchSlot.style.boxShadow = '0 0 30px rgba(255,0,255,0.8)';
+                glitchSlot.innerHTML = `
+                    <div class="ability-icon">👾</div>
+                    <div>Glitch Map</div>
+                    <div style="font-size:10px;color:#ff00ff;">ACTIVE</div>
+                    <div class="ability-cooldown" style="background:rgba(0,0,0,0.5);">${Math.ceil((glitchEffectTimer)/1000)}s</div>
+                `;
+                hotbar.appendChild(glitchSlot);
             }
         }
 
@@ -1456,7 +1531,7 @@
                 
                 // Trail effect for motion blur
                 if (this.isMoving && gameSettings.motionBlur > 0.3) {
-                    this.trail.unshift({ x: 0, y: 0, size: s, alpha: 0.3 });
+                    this.trail.unshift({ x: 0, y: 0, size: s, alpha: 0.3, color: this.skin.glitchTrail || c.armor });
                     if (this.trail.length > this.maxTrail) {
                         this.trail.pop();
                     }
@@ -1468,7 +1543,7 @@
                         ctx.globalAlpha = trailPart.alpha * (i / this.trail.length) * gameSettings.motionBlur;
                         
                         // Draw simplified character for trail
-                        ctx.fillStyle = c.armor;
+                        ctx.fillStyle = trailPart.color;
                         ctx.fillRect(-trailPart.size*0.4, -trailPart.size*0.2, trailPart.size*0.8, trailPart.size*0.8);
                         
                         ctx.restore();
@@ -1493,6 +1568,8 @@
                     this.drawPhantomAssassin();
                 } else if (this.skinId === 'angel') {
                     this.drawDivineAngel();
+                } else if (this.skinId === 'glitchboss') {
+                    this.drawGlitchBoss();
                 } else {
                     this.drawKnight();
                 }
@@ -1867,6 +1944,129 @@
                 ctx.fill();
                 ctx.shadowBlur = 0;
             }
+            
+            drawGlitchBoss() {
+                const s = this.size;
+                const c = this.skin;
+                
+                // Glitch aura with distortion effect
+                ctx.globalAlpha = 0.6 * gameSettings.visualEffects;
+                const time = Date.now() * 0.001;
+                for (let i = 0; i < 3; i++) {
+                    const auraSize = s * 2 + Math.sin(time * 5 + i) * 10;
+                    const auraGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, auraSize);
+                    auraGradient.addColorStop(0, c.glitch1);
+                    auraGradient.addColorStop(0.5, c.glitch2);
+                    auraGradient.addColorStop(1, 'transparent');
+                    
+                    ctx.fillStyle = auraGradient;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, auraSize, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.globalAlpha = 1;
+                
+                // Glitchy body with digital distortion
+                ctx.save();
+                
+                // Add glitch displacement
+                if (glitchEffectActive) {
+                    const displacement = Math.sin(Date.now() * 0.05) * 5;
+                    ctx.translate(displacement, displacement * 0.5);
+                }
+                
+                // Main body with glitch pattern
+                const segments = 8;
+                for (let i = 0; i < segments; i++) {
+                    const segmentAngle = (Math.PI * 2 / segments) * i;
+                    const segmentLength = s * (0.8 + Math.sin(time * 3 + i) * 0.2);
+                    const segmentWidth = s * 0.2;
+                    
+                    ctx.save();
+                    ctx.rotate(segmentAngle);
+                    ctx.translate(segmentLength * 0.5, 0);
+                    
+                    // Glitch segment with digital pattern
+                    const segmentGradient = ctx.createLinearGradient(-segmentWidth, -segmentWidth, segmentWidth, segmentWidth);
+                    segmentGradient.addColorStop(0, c.glitch1);
+                    segmentGradient.addColorStop(0.5, c.glitch2);
+                    segmentGradient.addColorStop(1, c.glitch3);
+                    
+                    ctx.fillStyle = segmentGradient;
+                    ctx.shadowBlur = 25 * gameSettings.visualEffects;
+                    ctx.shadowColor = c.glitch1;
+                    ctx.fillRect(-segmentWidth, -segmentWidth, segmentWidth * 2, segmentWidth * 2);
+                    
+                    // Digital pattern overlay
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([5, 3]);
+                    ctx.strokeRect(-segmentWidth, -segmentWidth, segmentWidth * 2, segmentWidth * 2);
+                    ctx.setLineDash([]);
+                    
+                    ctx.restore();
+                }
+                
+                // Glitch core
+                ctx.fillStyle = c.glitchCore;
+                ctx.shadowBlur = 40 * gameSettings.visualEffects;
+                ctx.shadowColor = c.glitchCore;
+                ctx.beginPath();
+                ctx.arc(0, 0, s * 0.4, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Digital eyes
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowBlur = 20 * gameSettings.visualEffects;
+                ctx.shadowColor = '#ffffff';
+                
+                // Left eye with glitch effect
+                ctx.save();
+                if (Math.random() > 0.7 && glitchEffectActive) {
+                    ctx.translate(-s * 0.3, -s * 0.2);
+                    ctx.scale(1 + Math.sin(time * 10) * 0.3, 1);
+                } else {
+                    ctx.translate(-s * 0.3, -s * 0.2);
+                }
+                ctx.fillRect(-4, -4, 8, 8);
+                ctx.restore();
+                
+                // Right eye
+                ctx.save();
+                if (Math.random() > 0.7 && glitchEffectActive) {
+                    ctx.translate(s * 0.3, -s * 0.2);
+                    ctx.scale(1 + Math.sin(time * 10) * 0.3, 1);
+                } else {
+                    ctx.translate(s * 0.3, -s * 0.2);
+                }
+                ctx.fillRect(-4, -4, 8, 8);
+                ctx.restore();
+                
+                // Digital mouth
+                ctx.strokeStyle = '#ff0000';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(0, s * 0.1, s * 0.2, 0, Math.PI);
+                ctx.stroke();
+                
+                // Glitch particles orbiting
+                for (let i = 0; i < 6; i++) {
+                    const particleAngle = time * 2 + (i * Math.PI / 3);
+                    const particleRadius = s * 1.2;
+                    const particleX = Math.cos(particleAngle) * particleRadius;
+                    const particleY = Math.sin(particleAngle) * particleRadius;
+                    
+                    ctx.fillStyle = [c.glitch4, c.glitch5, c.glitch6][i % 3];
+                    ctx.shadowBlur = 15 * gameSettings.visualEffects;
+                    ctx.shadowColor = [c.glitch4, c.glitch5, c.glitch6][i % 3];
+                    ctx.beginPath();
+                    ctx.arc(particleX, particleY, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                
+                ctx.shadowBlur = 0;
+                ctx.restore();
+            }
 
             draw() {
                 ctx.save();
@@ -1942,6 +2142,30 @@
                     }
                 }
                 
+                // Update Glitch Map effect
+                if (glitchEffectActive) {
+                    glitchEffectTimer -= deltaTime;
+                    
+                    // Restore enemy speeds when effect ends
+                    if (glitchEffectTimer <= 0) {
+                        glitchEffectActive = false;
+                        glitchEffectIntensity = 0;
+                        
+                        // Restore original enemy speeds
+                        enemies.forEach(enemy => {
+                            if (enemy.glitchSlowed && enemy.originalSpeed) {
+                                enemy.speed = enemy.originalSpeed;
+                                enemy.glitchSlowed = false;
+                            }
+                        });
+                        
+                        // Clear tracked enemies
+                        playerStats.glitchSlowedEnemies = [];
+                        
+                        showNotification('GLITCH MAP ENDED', '#ffff00');
+                    }
+                }
+                
                 // Update skin ability cooldown
                 if (skinAbilityCooldown > 0) {
                     skinAbilityCooldown -= deltaTime;
@@ -1989,12 +2213,14 @@
                 const ability = this.skin.ability;
                 
                 if (this.skinId === 'dragonknight') {
-                    // Dragon Roar - shoot fireballs in 8 directions
+                    // Dragon Roar - shoot fireballs in 8 directions (OPTIMIZED VERSION)
                     playSound('explosion', 0.7, 1.2);
                     addScreenShake(20);
                     
-                    for (let i = 0; i < 8; i++) {
-                        const angle = (Math.PI * 2 / 8) * i;
+                    // Create projectiles with optimized performance
+                    const directions = 8;
+                    for (let i = 0; i < directions; i++) {
+                        const angle = (Math.PI * 2 / directions) * i;
                         projectiles.push({
                             x: this.x,
                             y: this.y,
@@ -2005,7 +2231,9 @@
                             enemy: false,
                             angle: angle,
                             color: '#ff4500',
-                            isFireball: true
+                            isFireball: true,
+                            trail: [],
+                            maxTrail: 2
                         });
                     }
                     
@@ -2055,6 +2283,54 @@
                     }
                     
                     showNotification('DIVINE PROTECTION!', '#ffff00');
+                } else if (this.skinId === 'glitchboss') {
+                    // Glitch Map - slow all enemies by 80% for 20 seconds
+                    playSound('glitch', 0.5, 2);
+                    addScreenShake(40);
+                    
+                    // Activate glitch effect
+                    glitchEffectActive = true;
+                    glitchEffectTimer = ability.duration;
+                    glitchEffectIntensity = 0.8;
+                    
+                    // Slow all enemies
+                    enemies.forEach(enemy => {
+                        enemy.originalSpeed = enemy.speed;
+                        enemy.speed *= 0.2; // Slow by 80%
+                        enemy.glitchSlowed = true;
+                        
+                        // Mark for player stats tracking
+                        if (!playerStats.glitchSlowedEnemies.includes(enemy)) {
+                            playerStats.glitchSlowedEnemies.push(enemy);
+                        }
+                        
+                        // Create glitch effect on enemy
+                        for (let i = 0; i < 10; i++) {
+                            particlePool.get(
+                                enemy.x, enemy.y, this.skin.glitchEffect,
+                                (Math.random() - 0.5) * 8,
+                                (Math.random() - 0.5) * 8,
+                                Math.random() * 6 + 3, 1.5
+                            );
+                        }
+                    });
+                    
+                    skinAbilityCooldown = ability.cooldown;
+                    showNotification('GLITCH MAP ACTIVATED!', '#ff00ff');
+                    
+                    // Create full-screen glitch effect
+                    for (let i = 0; i < 50; i++) {
+                        const angle = Math.random() * Math.PI * 2;
+                        const distance = Math.random() * 600;
+                        particlePool.get(
+                            this.x + Math.cos(angle) * distance,
+                            this.y + Math.sin(angle) * distance,
+                            [this.skin.glitch1, this.skin.glitch2, this.skin.glitch3][Math.floor(Math.random() * 3)],
+                            (Math.random() - 0.5) * 10,
+                            (Math.random() - 0.5) * 10,
+                            Math.random() * 8 + 4, 2.0
+                        );
+                    }
                 }
                 
                 updateHotbar();
@@ -2096,6 +2372,12 @@
                     this.color = '#33cc33';
                     this.shootCooldown = 0;
                     this.range = 400;
+                } else if (rand > 0.4) {
+                    this.type = 'explosion';
+                    this.speed *= 0.15;
+                    this.health *= 0.75;
+                    this.color = '#ff0000';
+                    this.explosionRadius = 150;
                 } else {
                     this.type = 'normal';
                     this.color = '#ff6600';
@@ -2105,6 +2387,8 @@
                 this.hitTimer = 0;
                 this.trail = [];
                 this.maxTrail = 5;
+                this.glitchSlowed = false;
+                this.originalSpeed = this.speed;
             }
 
             draw() {
@@ -2909,7 +3193,9 @@
                 }
 
                 if (dist < player.size + this.size) {
-                    playerStats.xp += this.value;
+                    // Apply XP multiplier
+                    let xpGained = this.value * (1 + persistentData.permanentUpgrades.xpMultiplier * 0.15);
+                    playerStats.xp += xpGained;
                     updateUI();
                     checkLevelUp();
                     playSound('ability', 1.5, 0.3);
@@ -3673,6 +3959,11 @@
             divineProtectionTimer = 0;
             goldenTrailParticles = [];
             
+            // Reset glitch effect
+            glitchEffectActive = false;
+            glitchEffectTimer = 0;
+            glitchEffectIntensity = 0;
+            
             // Reset ability effects
             activeEffects = {
                 fireTornado: { active: false, x: 0, y: 0, startTime: 0, particles: [] },
@@ -3704,7 +3995,8 @@
                 lightningChain: false,
                 iceNova: false,
                 meteorShower: false,
-                voidRift: false
+                voidRift: false,
+                glitchSlowedEnemies: []
             };
             
             abilityCooldowns = {
@@ -4114,6 +4406,20 @@
                         </ul>
                     </div>
                 `;
+            } else if (skinId === 'glitchboss') {
+                infoHTML += `
+                    <div style="margin-top:20px;font-size:18px;color:#ff00ff;">
+                        ✨ Special Features:
+                        <ul style="margin-top:10px;padding-left:20px;">
+                            <li>Digital glitch trail when moving</li>
+                            <li>Distortion aura with multiple colors</li>
+                            <li>Orbiting glitch particles</li>
+                            <li>Screen-wide glitch effects</li>
+                            <li>Digital distortion visuals</li>
+                            <li>Time-slowing ability</li>
+                        </ul>
+                    </div>
+                `;
             }
             
             content.innerHTML = infoHTML;
@@ -4173,6 +4479,21 @@
                     cost: 60,
                     key: 'startingRegen',
                     max: 10
+                },
+                // NEW UPGRADES
+                { 
+                    name: '📈 XP Multiplier', 
+                    desc: '+0.15 XP gained from all sources',
+                    cost: 200,
+                    key: 'xpMultiplier',
+                    max: 5
+                },
+                { 
+                    name: '💰 Kill Multiplier', 
+                    desc: '+0.25x kills multiplier',
+                    cost: 300,
+                    key: 'killMultiplier',
+                    max: 5
                 }
             ];
 
@@ -4248,6 +4569,15 @@
                             <div style="position:absolute;top:-15px;left:20px;width:20px;height:20px;background:${skin.halo};border-radius:50%;"></div>
                         </div>
                     `;
+                } else if (skinId === 'glitchboss') {
+                    previewHTML = `
+                        <div style="width:60px;height:60px;background:${skin.armor};border-radius:50%;border:4px solid ${skin.accent};
+                            box-shadow:0 0 20px ${skin.accent};position:relative;overflow:hidden;">
+                            <div style="position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(45deg, transparent 30%, ${skin.glitch1} 50%, transparent 70%);"></div>
+                            <div style="position:absolute;top:15px;left:20px;width:20px;height:20px;background:${skin.glitch2};border-radius:50%;box-shadow:0 0 10px ${skin.glitch2};"></div>
+                            <div style="position:absolute;top:15px;right:20px;width:20px;height:20px;background:${skin.glitch3};border-radius:50%;box-shadow:0 0 10px ${skin.glitch3};"></div>
+                        </div>
+                    `;
                 } else {
                     previewHTML = `
                         <div style="width:60px;height:60px;background:${skin.armor};border-radius:50%;border:4px solid ${skin.accent};box-shadow:0 0 20px ${skin.accent};"></div>
@@ -4312,6 +4642,13 @@
 
             updateFPS();
             updateScreenShake();
+            
+            // Visual glitch effect on screen if active
+            if (glitchEffectActive && Math.random() < 0.3) {
+                const glitchOffset = (Math.random() - 0.5) * 10 * glitchEffectIntensity;
+                screenShake.x += glitchOffset;
+                screenShake.y += glitchOffset * 0.5;
+            }
             
             applyMotionBlur();
             
@@ -4450,8 +4787,16 @@
                             }
                             
                             enemies.splice(j, 1);
-                            kills++;
-                            persistentData.totalKills++;
+                            
+                            // Apply kill multiplier
+                            let killValue = 1;
+                            if (enemy.isBoss) killValue = 5;
+                            else if (enemy.type === 'miniboss') killValue = 3;
+                            
+                            let multiplier = 1 + persistentData.permanentUpgrades.killMultiplier * 0.25;
+                            kills += Math.ceil(killValue * multiplier);
+                            persistentData.totalKills += Math.ceil(killValue * multiplier);
+                            
                             updateUI();
                         } else if (enemy.isBoss) {
                             updateBossHealth();
@@ -4567,6 +4912,8 @@
                 } else if (e.key.toLowerCase() === 'e' && player.skin.ability && player.skin.ability.key === 'E') {
                     player.activateSkinAbility();
                 } else if (e.key.toLowerCase() === 'r' && player.skin.ability && player.skin.ability.key === 'R') {
+                    player.activateSkinAbility();
+                } else if (e.key.toLowerCase() === 'g' && player.skin.ability && player.skin.ability.key === 'G') {
                     player.activateSkinAbility();
                 }
             }
