@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Knight Survivor - AAA EDITION</title>
+    <title>Knight Survivor </title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -204,7 +204,7 @@
         }
         @keyframes fadeIn {
             from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
+            to { opacity: 1; transform: scale(1.2); }
         }
         #levelUpScreen { display: none; }
         #pauseMenu { display: none; }
@@ -629,7 +629,7 @@
         <div id="levelUpScreen" class="menu-screen">
             <h2>✨ LEVEL UP! ✨</h2>
             <div id="upgradeOptions"></div>
-            <h2 style="margin-top:40px;color:#ff9933;">😈 CURSE UPGRADES 😈</h2>
+            <h2 style="margin-top:40px;color:#ff0000;">😈 CURSE UPGRADES 😈</h2>
             <div id="curseOptions" style="display:flex;gap:20px;"></div>
         </div>
 
@@ -653,7 +653,7 @@
         
         let gameSettings = {
             audioVolume: 0.3,
-            motionBlur: 0.7,
+            motionBlur: 0.2,
             visualEffects: 1.0
         };
 
