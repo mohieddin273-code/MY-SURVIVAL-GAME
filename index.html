@@ -159,7 +159,7 @@
         }
         @keyframes bossNamePulse {
             0%, 100% { transform: translateX(-50%) scale(1); }
-            50% { transform: translateX(-50%) scale(1.1); }
+            50% { transform: translateX(-50%) scale(1); }
         }
         #bossHealthBar {
             position: absolute;
@@ -204,7 +204,7 @@
         }
         @keyframes fadeIn {
             from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1.2); }
+            to { opacity: 1; transform: scale(1); }
         }
         #levelUpScreen { display: none; }
         #pauseMenu { display: none; }
@@ -983,7 +983,7 @@
                     name: 'Divine Protection',
                     description: 'Become invincible for 5 seconds',
                     key: 'Q',
-                    cooldown: 60000,
+                    cooldown: 25000,
                     duration: 5000
                 }
             },
@@ -2372,12 +2372,6 @@
                     this.color = '#33cc33';
                     this.shootCooldown = 0;
                     this.range = 400;
-                } else if (rand > 0.4) {
-                    this.type = 'explosion';
-                    this.speed *= 0.15;
-                    this.health *= 0.75;
-                    this.color = '#ff0000';
-                    this.explosionRadius = 150;
                 } else {
                     this.type = 'normal';
                     this.color = '#ff6600';
