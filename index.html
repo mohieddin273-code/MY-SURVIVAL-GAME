@@ -535,6 +535,67 @@
             color: #ff3333;
             text-shadow: 0 0 30px #ff3333;
         }
+        
+        /* Skin Info Popup */
+        #skinInfoPopup {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, rgba(20,0,40,0.97), rgba(40,0,80,0.97));
+            backdrop-filter: blur(25px);
+            border: 6px solid #ffd700;
+            border-radius: 25px;
+            padding: 40px;
+            z-index: 250;
+            min-width: 500px;
+            max-width: 600px;
+            box-shadow: 0 0 80px rgba(255,215,0,0.7);
+            animation: popupFadeIn 0.3s ease-out;
+        }
+        @keyframes popupFadeIn {
+            from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+        #skinInfoPopup h3 {
+            font-size: 32px;
+            color: #ffd700;
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px #ffd700;
+        }
+        .skin-info-content {
+            font-size: 20px;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+        .skin-ability-info {
+            background: rgba(0,0,0,0.5);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border: 3px solid #00ffff;
+        }
+        .skin-ability-title {
+            color: #00ffff;
+            font-size: 22px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .skin-ability-desc {
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+        .skin-ability-key {
+            display: inline-block;
+            background: rgba(0,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 8px;
+            border: 2px solid #00ffff;
+            font-weight: bold;
+            margin-right: 10px;
+        }
     </style>
 </head>
 <body>
@@ -560,6 +621,15 @@
         <div id="shieldBar" style="display:none;"><div id="shieldFill" style="width:100%;">Shield</div></div>
         <div id="notification"></div>
         <div id="curseResult" class="curse-result" style="display:none;"></div>
+
+        <!-- Skin Info Popup -->
+        <div id="skinInfoPopup">
+            <h3>🔮 SKIN INFORMATION 🔮</h3>
+            <div id="skinInfoContent" class="skin-info-content"></div>
+            <div style="display: flex; justify-content: center;">
+                <button id="closeSkinInfoBtn" style="padding: 15px 40px; font-size: 22px;">CLOSE</button>
+            </div>
+        </div>
 
         <!-- Settings Menu -->
         <div id="settingsMenu">
@@ -808,7 +878,8 @@
                 metal: '#99ccff',
                 cape: '#dd0000',
                 accent: '#ffd700',
-                shield: '#e0e0e0'
+                shield: '#e0e0e0',
+                ability: null
             },
             golden: {
                 name: '👑 Golden King',
@@ -817,7 +888,8 @@
                 metal: '#ffed4e',
                 cape: '#aa66ff',
                 accent: '#ff6600',
-                shield: '#ffffff'
+                shield: '#ffffff',
+                ability: null
             },
             shadow: {
                 name: '🌑 Shadow Assassin',
@@ -827,7 +899,8 @@
                 cape: '#1a1a1a',
                 accent: '#9900ff',
                 shield: '#666666',
-                eyes: '#ff0000'
+                eyes: '#ff0000',
+                ability: null
             },
             ice: {
                 name: '❄️ Frozen Paladin',
@@ -836,7 +909,8 @@
                 metal: '#99ffff',
                 cape: '#00ffff',
                 accent: '#ffffff',
-                shield: '#ccffff'
+                shield: '#ccffff',
+                ability: null
             },
             fire: {
                 name: '🔥 Flame Lord',
@@ -846,7 +920,8 @@
                 cape: '#ff0000',
                 accent: '#ffaa00',
                 shield: '#ff8800',
-                glow: '#ff6600'
+                glow: '#ff6600',
+                ability: null
             },
             void: {
                 name: '🌌 Void Knight',
@@ -856,7 +931,59 @@
                 cape: '#4400aa',
                 accent: '#ff00ff',
                 shield: '#aa66ff',
-                glow: '#ff00ff'
+                glow: '#ff00ff',
+                ability: null
+            },
+            // NEW SKINS
+            dragonknight: {
+                name: '🐉 Dragon Knight',
+                cost: 5000,
+                armor: '#8b4513',
+                metal: '#d2691e',
+                cape: '#a0522d',
+                accent: '#ff4500',
+                shield: '#cd853f',
+                dragonScale: '#ff6347',
+                ability: {
+                    name: 'Dragon Roar',
+                    description: 'Shoot fireballs in 8 directions',
+                    key: 'R',
+                    cooldown: 8000
+                }
+            },
+            phantom: {
+                name: '👻 Phantom Assassin',
+                cost: 10000,
+                armor: '#4b0082',
+                metal: '#9370db',
+                cape: '#483d8b',
+                accent: '#da70d6',
+                shield: '#d8bfd8',
+                ghostly: '#9400d3',
+                ability: {
+                    name: 'Phantom Strike',
+                    description: 'Teleport to cursor position',
+                    key: 'E',
+                    cooldown: 10000
+                }
+            },
+            angel: {
+                name: '👼 Divine Angel',
+                cost: 20000,
+                armor: '#ffffff',
+                metal: '#fffacd',
+                cape: '#f0e68c',
+                accent: '#ffd700',
+                shield: '#ffffe0',
+                halo: '#ffff00',
+                wings: '#fff8dc',
+                ability: {
+                    name: 'Divine Protection',
+                    description: 'Become invincible for 5 seconds',
+                    key: 'Q',
+                    cooldown: 60000,
+                    duration: 5000
+                }
             }
         };
 
@@ -939,6 +1066,22 @@
                     osc.start();
                     osc.stop(audioCtx.currentTime + 0.5);
                     break;
+                case 'teleport':
+                    osc.frequency.value = 1200 * pitch;
+                    osc.type = 'sine';
+                    gain.gain.setValueAtTime(0.15 * volume * gameSettings.audioVolume, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.2);
+                    break;
+                case 'divine':
+                    osc.frequency.value = 300 * pitch;
+                    osc.type = 'sine';
+                    gain.gain.setValueAtTime(0.3 * volume * gameSettings.audioVolume, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 1.5);
+                    break;
             }
         }
 
@@ -960,6 +1103,12 @@
         let lastTime = Date.now();
         let accumulatedTime = 0;
         let abilityHotbar = [];
+        
+        // Skin-specific ability cooldowns
+        let skinAbilityCooldown = 0;
+        let divineProtectionActive = false;
+        let divineProtectionTimer = 0;
+        let goldenTrailParticles = [];
 
         let playerStats = {
             maxHealth: 100,
@@ -1007,7 +1156,10 @@
             lightningChain: '⚡',
             iceNova: '❄️',
             meteorShower: '☄️',
-            voidRift: '🌌'
+            voidRift: '🌌',
+            dragonRoar: '🐉',
+            phantomStrike: '👻',
+            divineProtection: '👼'
         };
 
         // ==================== MOTION BLUR ====================
@@ -1045,6 +1197,7 @@
             
             abilityHotbar = [];
             
+            // Regular abilities
             if (playerStats.fireTornado) {
                 abilityHotbar.push({
                     id: 'fireTornado',
@@ -1096,6 +1249,19 @@
                 });
             }
             
+            // Skin abilities
+            if (player.skin.ability) {
+                abilityHotbar.push({
+                    id: 'skinAbility',
+                    name: player.skin.ability.name,
+                    icon: player.skin.id === 'dragonknight' ? '🐉' : 
+                           player.skin.id === 'phantom' ? '👻' : '👼',
+                    cooldown: skinAbilityCooldown,
+                    maxCooldown: player.skin.ability.cooldown,
+                    key: player.skin.ability.key
+                });
+            }
+            
             abilityHotbar.forEach((ability, index) => {
                 const slot = document.createElement('div');
                 slot.className = 'ability-slot';
@@ -1119,6 +1285,21 @@
                 
                 hotbar.appendChild(slot);
             });
+            
+            // Add special indicator for Divine Protection if active
+            if (divineProtectionActive) {
+                const protectionSlot = document.createElement('div');
+                protectionSlot.className = 'ability-slot';
+                protectionSlot.style.borderColor = '#ffff00';
+                protectionSlot.style.boxShadow = '0 0 30px rgba(255,255,0,0.8)';
+                protectionSlot.innerHTML = `
+                    <div class="ability-icon">👼</div>
+                    <div>Divine Protection</div>
+                    <div style="font-size:10px;color:#ffff00;">ACTIVE</div>
+                    <div class="ability-cooldown" style="background:rgba(0,0,0,0.5);">${Math.ceil((divineProtectionTimer)/1000)}s</div>
+                `;
+                hotbar.appendChild(protectionSlot);
+            }
         }
 
         // ==================== BACKGROUND RENDERING ====================
@@ -1196,30 +1377,82 @@
                 this.walkAnimation = 0;
                 this.isMoving = false;
                 this.skin = SKINS[persistentData.selectedSkin] || SKINS.classic;
+                this.skinId = persistentData.selectedSkin;
                 this.hitTimer = 0;
                 this.auraRotation = 0;
                 this.trail = [];
                 this.maxTrail = 10;
+                this.lastPositions = [];
+                this.maxLastPositions = 5;
             }
 
-            drawDetailedKnight() {
+            drawDetailedCharacter() {
                 const s = this.size;
                 const c = this.skin;
                 
-                // Aura glow
-                this.auraRotation += 0.05;
-                ctx.globalAlpha = 0.3 * gameSettings.visualEffects;
-                const auraGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, s * 2);
-                auraGradient.addColorStop(0, c.accent + '80');
-                auraGradient.addColorStop(1, 'transparent');
-                ctx.fillStyle = auraGradient;
-                ctx.save();
-                ctx.rotate(this.auraRotation);
-                ctx.beginPath();
-                ctx.arc(0, 0, s * 2, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-                ctx.globalAlpha = 1;
+                // Special aura for Divine Angel
+                if (this.skinId === 'angel') {
+                    this.auraRotation += 0.08;
+                    ctx.globalAlpha = 0.4 * gameSettings.visualEffects;
+                    const haloGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, s * 3);
+                    haloGradient.addColorStop(0, '#ffff00');
+                    haloGradient.addColorStop(0.5, '#ffd70080');
+                    haloGradient.addColorStop(1, 'transparent');
+                    ctx.fillStyle = haloGradient;
+                    ctx.save();
+                    ctx.rotate(this.auraRotation);
+                    ctx.beginPath();
+                    ctx.arc(0, 0, s * 3, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                    ctx.globalAlpha = 1;
+                }
+                
+                // Dragon Knight aura
+                if (this.skinId === 'dragonknight') {
+                    ctx.globalAlpha = 0.3 * gameSettings.visualEffects;
+                    const dragonAura = ctx.createRadialGradient(0, 0, 0, 0, 0, s * 2);
+                    dragonAura.addColorStop(0, '#ff4500');
+                    dragonAura.addColorStop(1, 'transparent');
+                    ctx.fillStyle = dragonAura;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, s * 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                }
+                
+                // Phantom Assassin aura
+                if (this.skinId === 'phantom') {
+                    ctx.globalAlpha = 0.2 * gameSettings.visualEffects;
+                    const phantomAura = ctx.createRadialGradient(0, 0, 0, 0, 0, s * 2);
+                    phantomAura.addColorStop(0, '#9400d3');
+                    phantomAura.addColorStop(1, 'transparent');
+                    ctx.fillStyle = phantomAura;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, s * 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                }
+                
+                // Golden trail for Angel
+                if (this.skinId === 'angel' && this.isMoving && gameSettings.motionBlur > 0.3) {
+                    this.lastPositions.unshift({ x: 0, y: 0 });
+                    if (this.lastPositions.length > this.maxLastPositions) {
+                        this.lastPositions.pop();
+                    }
+                    
+                    for (let i = this.lastPositions.length - 1; i >= 0; i--) {
+                        ctx.save();
+                        ctx.globalAlpha = (0.3 - i * 0.05) * gameSettings.visualEffects;
+                        ctx.fillStyle = '#ffd700';
+                        ctx.shadowBlur = 20;
+                        ctx.shadowColor = '#ffd700';
+                        ctx.beginPath();
+                        ctx.arc(0, 0, s * 0.4 * (1 - i/this.lastPositions.length), 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.restore();
+                    }
+                }
                 
                 // Trail effect for motion blur
                 if (this.isMoving && gameSettings.motionBlur > 0.3) {
@@ -1234,7 +1467,7 @@
                         ctx.translate(trailPart.x, trailPart.y);
                         ctx.globalAlpha = trailPart.alpha * (i / this.trail.length) * gameSettings.motionBlur;
                         
-                        // Draw simplified knight for trail
+                        // Draw simplified character for trail
                         ctx.fillStyle = c.armor;
                         ctx.fillRect(-trailPart.size*0.4, -trailPart.size*0.2, trailPart.size*0.8, trailPart.size*0.8);
                         
@@ -1252,6 +1485,22 @@
                 ctx.ellipse(0, s*0.95, s*0.9, s*0.25, 0, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.shadowBlur = 0;
+                
+                // Draw different character based on skin
+                if (this.skinId === 'dragonknight') {
+                    this.drawDragonKnight();
+                } else if (this.skinId === 'phantom') {
+                    this.drawPhantomAssassin();
+                } else if (this.skinId === 'angel') {
+                    this.drawDivineAngel();
+                } else {
+                    this.drawKnight();
+                }
+            }
+            
+            drawKnight() {
+                const s = this.size;
+                const c = this.skin;
                 
                 // Body/Armor
                 ctx.fillStyle = c.armor;
@@ -1296,41 +1545,9 @@
                 ctx.fillRect(-s*0.4, -s*0.55, s*0.8, s*0.15);
                 ctx.shadowBlur = 0;
                 
-                // Helmet detail/horns
-                if (persistentData.selectedSkin === 'classic') {
-                    ctx.fillStyle = c.metal;
-                    ctx.shadowBlur = 10;
-                    ctx.shadowColor = c.metal;
-                    ctx.fillRect(-s*0.45, -s*0.7, s*0.15, s*0.25);
-                    ctx.fillRect(s*0.3, -s*0.7, s*0.15, s*0.25);
-                    ctx.shadowBlur = 0;
-                }
-                
-                // Crown (for golden king)
-                if (persistentData.selectedSkin === 'golden') {
-                    ctx.fillStyle = c.accent;
-                    ctx.shadowBlur = 20;
-                    ctx.shadowColor = c.accent;
-                    for (let i = 0; i < 5; i++) {
-                        const px = -s*0.3 + (i * s*0.15);
-                        ctx.fillRect(px, -s*0.75, s*0.1, s*0.2);
-                    }
-                    ctx.shadowBlur = 0;
-                }
-                
                 // Visor
                 ctx.fillStyle = '#000000';
                 ctx.fillRect(-s*0.25, -s*0.4, s*0.5, s*0.15);
-                
-                // Eyes (red for shadow)
-                if (persistentData.selectedSkin === 'shadow' && c.eyes) {
-                    ctx.fillStyle = c.eyes;
-                    ctx.shadowBlur = 15;
-                    ctx.shadowColor = c.eyes;
-                    ctx.fillRect(-s*0.2, -s*0.35, s*0.08, s*0.08);
-                    ctx.fillRect(s*0.12, -s*0.35, s*0.08, s*0.08);
-                    ctx.shadowBlur = 0;
-                }
                 
                 // Shield (left)
                 ctx.save();
@@ -1389,6 +1606,267 @@
                 
                 ctx.restore();
             }
+            
+            drawDragonKnight() {
+                const s = this.size;
+                const c = this.skin;
+                
+                // Dragon scale armor
+                ctx.fillStyle = c.armor;
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = c.dragonScale;
+                ctx.fillRect(-s*0.4, -s*0.2, s*0.8, s*0.8);
+                
+                // Dragon scales pattern
+                ctx.fillStyle = c.dragonScale;
+                for (let i = 0; i < 5; i++) {
+                    for (let j = 0; j < 3; j++) {
+                        const scaleX = -s*0.3 + i * s*0.15;
+                        const scaleY = -s*0.1 + j * s*0.25;
+                        ctx.beginPath();
+                        ctx.arc(scaleX, scaleY, s*0.08, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+                ctx.shadowBlur = 0;
+                
+                // Dragon helmet with horns
+                ctx.fillStyle = c.armor;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = c.dragonScale;
+                ctx.fillRect(-s*0.3, -s*0.6, s*0.6, s*0.4);
+                
+                // Horns
+                ctx.fillStyle = c.dragonScale;
+                ctx.beginPath();
+                ctx.moveTo(-s*0.25, -s*0.6);
+                ctx.lineTo(-s*0.4, -s*0.8);
+                ctx.lineTo(-s*0.2, -s*0.6);
+                ctx.fill();
+                
+                ctx.beginPath();
+                ctx.moveTo(s*0.25, -s*0.6);
+                ctx.lineTo(s*0.4, -s*0.8);
+                ctx.lineTo(s*0.2, -s*0.6);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                
+                // Dragon claw gauntlets
+                ctx.fillStyle = c.dragonScale;
+                ctx.fillRect(-s*0.5, -s*0.1, s*0.15, s*0.3);
+                ctx.fillRect(s*0.35, -s*0.1, s*0.15, s*0.3);
+                
+                // Dragon tail (back)
+                ctx.beginPath();
+                ctx.moveTo(0, s*0.5);
+                ctx.lineTo(-s*0.3, s*0.8);
+                ctx.lineTo(0, s*0.7);
+                ctx.lineTo(s*0.3, s*0.8);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Weapon - Dragon spear
+                ctx.save();
+                ctx.translate(s*0.6, 0);
+                ctx.fillStyle = c.accent;
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = c.accent;
+                ctx.fillRect(-s*0.05, -s*0.5, s*0.1, s*1.0);
+                ctx.shadowBlur = 0;
+                ctx.restore();
+            }
+            
+            drawPhantomAssassin() {
+                const s = this.size;
+                const c = this.skin;
+                
+                // Ghostly body with transparency
+                ctx.globalAlpha = 0.9;
+                ctx.fillStyle = c.armor;
+                ctx.shadowBlur = 25;
+                ctx.shadowColor = c.ghostly;
+                ctx.beginPath();
+                ctx.arc(0, 0, s*0.6, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+                
+                // Wispy, ethereal form
+                ctx.fillStyle = c.ghostly;
+                ctx.globalAlpha = 0.7;
+                for (let i = 0; i < 4; i++) {
+                    const angle = Date.now() * 0.001 + i * Math.PI/2;
+                    const wispX = Math.cos(angle) * s*0.4;
+                    const wispY = Math.sin(angle) * s*0.4;
+                    ctx.beginPath();
+                    ctx.arc(wispX, wispY, s*0.2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.globalAlpha = 1;
+                
+                // Phantom mask/face
+                ctx.fillStyle = '#000000';
+                ctx.globalAlpha = 0.8;
+                ctx.beginPath();
+                ctx.arc(0, -s*0.1, s*0.2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Glowing eyes
+                ctx.fillStyle = c.accent;
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = c.accent;
+                ctx.beginPath();
+                ctx.arc(-s*0.08, -s*0.1, s*0.05, 0, Math.PI * 2);
+                ctx.arc(s*0.08, -s*0.1, s*0.05, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.globalAlpha = 1;
+                
+                // Phantom daggers
+                ctx.save();
+                ctx.translate(-s*0.5, 0);
+                ctx.rotate(Math.PI/4);
+                ctx.fillStyle = c.metal;
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = c.accent;
+                ctx.fillRect(-s*0.05, -s*0.3, s*0.1, s*0.6);
+                ctx.restore();
+                
+                ctx.save();
+                ctx.translate(s*0.5, 0);
+                ctx.rotate(-Math.PI/4);
+                ctx.fillStyle = c.metal;
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = c.accent;
+                ctx.fillRect(-s*0.05, -s*0.3, s*0.1, s*0.6);
+                ctx.restore();
+                ctx.shadowBlur = 0;
+            }
+            
+            drawDivineAngel() {
+                const s = this.size;
+                const c = this.skin;
+                
+                // Divine body (elegant robes)
+                ctx.fillStyle = c.armor;
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = '#ffffff';
+                
+                // Main robe
+                ctx.beginPath();
+                ctx.ellipse(0, 0, s*0.5, s*0.7, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Flowing robe bottom
+                ctx.beginPath();
+                ctx.moveTo(-s*0.5, s*0.3);
+                ctx.quadraticCurveTo(0, s*0.8, s*0.5, s*0.3);
+                ctx.lineTo(s*0.4, s*0.6);
+                ctx.quadraticCurveTo(0, s*1.0, -s*0.4, s*0.6);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Angelic wings
+                ctx.save();
+                ctx.translate(-s*0.8, 0);
+                this.drawAngelWing();
+                ctx.restore();
+                
+                ctx.save();
+                ctx.translate(s*0.8, 0);
+                ctx.scale(-1, 1);
+                this.drawAngelWing();
+                ctx.restore();
+                
+                // Golden halo
+                ctx.fillStyle = c.halo;
+                ctx.shadowBlur = 30;
+                ctx.shadowColor = c.halo;
+                ctx.globalAlpha = 0.8;
+                ctx.beginPath();
+                ctx.arc(0, -s*0.8, s*0.3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+                
+                // Serene face
+                ctx.fillStyle = '#fff8dc';
+                ctx.beginPath();
+                ctx.arc(0, -s*0.2, s*0.2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Divine eyes
+                ctx.fillStyle = '#ffd700';
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = '#ffd700';
+                ctx.beginPath();
+                ctx.arc(-s*0.08, -s*0.2, s*0.04, 0, Math.PI * 2);
+                ctx.arc(s*0.08, -s*0.2, s*0.04, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Golden bow (instead of sword)
+                ctx.save();
+                ctx.translate(s*0.6, -s*0.1);
+                ctx.rotate(Math.PI/4);
+                
+                // Bow
+                ctx.strokeStyle = '#ffd700';
+                ctx.lineWidth = 4;
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = '#ffd700';
+                ctx.beginPath();
+                ctx.arc(0, 0, s*0.4, Math.PI/4, Math.PI*3/4);
+                ctx.stroke();
+                
+                // Bowstring
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(Math.cos(Math.PI/4)*s*0.4, Math.sin(Math.PI/4)*s*0.4);
+                ctx.lineTo(Math.cos(Math.PI*3/4)*s*0.4, Math.sin(Math.PI*3/4)*s*0.4);
+                ctx.stroke();
+                
+                // Golden arrow
+                ctx.fillStyle = '#ffd700';
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = '#ffd700';
+                ctx.fillRect(s*0.35, -3, s*0.3, 6);
+                ctx.beginPath();
+                ctx.moveTo(s*0.65, 0);
+                ctx.lineTo(s*0.55, -s*0.05);
+                ctx.lineTo(s*0.55, s*0.05);
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.restore();
+                ctx.shadowBlur = 0;
+            }
+            
+            drawAngelWing() {
+                const s = this.size;
+                const c = this.skin;
+                
+                const wingGradient = ctx.createLinearGradient(0, -s, 0, s);
+                wingGradient.addColorStop(0, '#ffffff');
+                wingGradient.addColorStop(0.5, c.wings);
+                wingGradient.addColorStop(1, '#fff8dc');
+                
+                ctx.fillStyle = wingGradient;
+                ctx.shadowBlur = 25;
+                ctx.shadowColor = '#ffffff';
+                
+                // Draw wing shape
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                for (let i = 0; i < 8; i++) {
+                    const angle = -Math.PI/2 + (i / 7) * Math.PI;
+                    const radius = s * (1.0 - i * 0.12);
+                    const x = Math.cos(angle) * radius;
+                    const y = Math.sin(angle) * radius;
+                    ctx.lineTo(x, y);
+                }
+                ctx.closePath();
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
 
             draw() {
                 ctx.save();
@@ -1404,8 +1882,21 @@
                 ctx.translate(0, bounce);
                 ctx.rotate(this.angle);
                 
+                // Divine Protection effect
+                if (divineProtectionActive) {
+                    ctx.globalAlpha = 0.5 * gameSettings.visualEffects;
+                    ctx.fillStyle = '#ffff00';
+                    ctx.shadowBlur = 60 * gameSettings.visualEffects;
+                    ctx.shadowColor = '#ffff00';
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.size*1.5, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                    ctx.shadowBlur = 0;
+                }
+                
                 // Hit effect - red glow
-                if (this.hitTimer > 0) {
+                if (this.hitTimer > 0 && !divineProtectionActive) {
                     ctx.globalAlpha = (this.hitTimer / 10) * gameSettings.visualEffects;
                     ctx.fillStyle = '#ff0000';
                     ctx.shadowBlur = 40 * gameSettings.visualEffects;
@@ -1416,7 +1907,7 @@
                     this.hitTimer--;
                 }
                 
-                this.drawDetailedKnight();
+                this.drawDetailedCharacter();
                 
                 ctx.restore();
             }
@@ -1443,6 +1934,19 @@
                     this.angle = Math.atan2(dy, dx);
                 }
 
+                // Update Divine Protection
+                if (divineProtectionActive) {
+                    divineProtectionTimer -= deltaTime;
+                    if (divineProtectionTimer <= 0) {
+                        divineProtectionActive = false;
+                    }
+                }
+                
+                // Update skin ability cooldown
+                if (skinAbilityCooldown > 0) {
+                    skinAbilityCooldown -= deltaTime;
+                }
+
                 if (playerStats.health < playerStats.maxHealth) {
                     playerStats.health = Math.min(playerStats.maxHealth, playerStats.health + playerStats.regeneration * deltaTime / 16);
                     updateHealthBar();
@@ -1453,12 +1957,14 @@
                 camera.x += (targetX - camera.x) * 0.15;
                 camera.y += (targetY - camera.y) * 0.15;
 
-                if (playerStats.health < prevHealth) {
+                if (playerStats.health < prevHealth && !divineProtectionActive) {
                     this.hitTimer = 10;
                 }
             }
 
             takeDamage(damage) {
+                if (divineProtectionActive) return;
+                
                 playerStats.health -= damage;
                 addScreenShake(10);
                 updateHealthBar();
@@ -1474,6 +1980,84 @@
                         Math.random() * 4 + 2, 1
                     );
                 }
+            }
+            
+            // Skin ability activation
+            activateSkinAbility() {
+                if (skinAbilityCooldown > 0 || !this.skin.ability) return;
+                
+                const ability = this.skin.ability;
+                
+                if (this.skinId === 'dragonknight') {
+                    // Dragon Roar - shoot fireballs in 8 directions
+                    playSound('explosion', 0.7, 1.2);
+                    addScreenShake(20);
+                    
+                    for (let i = 0; i < 8; i++) {
+                        const angle = (Math.PI * 2 / 8) * i;
+                        projectiles.push({
+                            x: this.x,
+                            y: this.y,
+                            vx: Math.cos(angle) * 15,
+                            vy: Math.sin(angle) * 15,
+                            size: 25,
+                            damage: playerStats.damage * 2,
+                            enemy: false,
+                            angle: angle,
+                            color: '#ff4500',
+                            isFireball: true
+                        });
+                    }
+                    
+                    skinAbilityCooldown = ability.cooldown;
+                    showNotification('DRAGON ROAR!', '#ff4500');
+                    
+                } else if (this.skinId === 'phantom') {
+                    // Phantom Strike - teleport to cursor position
+                    // Note: We need mouse position, which we don't have. Instead teleport forward.
+                    playSound('teleport', 1.0, 1.0);
+                    
+                    const teleportDistance = 200;
+                    this.x += Math.cos(this.angle) * teleportDistance;
+                    this.y += Math.sin(this.angle) * teleportDistance;
+                    
+                    // Create teleport effect
+                    for (let i = 0; i < 20; i++) {
+                        particlePool.get(
+                            this.x, this.y, '#9400d3',
+                            (Math.random() - 0.5) * 10,
+                            (Math.random() - 0.5) * 10,
+                            Math.random() * 6 + 3, 1.5
+                        );
+                    }
+                    
+                    skinAbilityCooldown = ability.cooldown;
+                    showNotification('PHANTOM STRIKE!', '#9400d3');
+                    
+                } else if (this.skinId === 'angel') {
+                    // Divine Protection - become invincible
+                    playSound('divine', 0.8, 1.5);
+                    addScreenShake(30);
+                    
+                    divineProtectionActive = true;
+                    divineProtectionTimer = ability.duration;
+                    skinAbilityCooldown = ability.cooldown;
+                    
+                    // Create divine protection effect
+                    for (let i = 0; i < 30; i++) {
+                        const angle = (Math.PI * 2 / 30) * i;
+                        particlePool.get(
+                            this.x, this.y, '#ffff00',
+                            Math.cos(angle) * 8,
+                            Math.sin(angle) * 8,
+                            Math.random() * 8 + 4, 2.0
+                        );
+                    }
+                    
+                    showNotification('DIVINE PROTECTION!', '#ffff00');
+                }
+                
+                updateHotbar();
             }
         }
 
@@ -2160,6 +2744,37 @@
                 // Culling
                 if (screenX < -50 || screenX > canvas.width + 50 ||
                     screenY < -50 || screenY > canvas.height + 50) {
+                    return;
+                }
+                
+                // Special fireball drawing for Dragon Roar
+                if (this.isFireball) {
+                    ctx.save();
+                    ctx.translate(screenX, screenY);
+                    ctx.rotate(this.angle);
+                    
+                    const fireGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, this.size);
+                    fireGradient.addColorStop(0, '#ffff00');
+                    fireGradient.addColorStop(0.5, '#ff4500');
+                    fireGradient.addColorStop(1, '#ff0000');
+                    
+                    ctx.fillStyle = fireGradient;
+                    ctx.shadowBlur = 40 * gameSettings.visualEffects;
+                    ctx.shadowColor = '#ff4500';
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Fireball core
+                    ctx.fillStyle = '#ffff00';
+                    ctx.shadowBlur = 30 * gameSettings.visualEffects;
+                    ctx.shadowColor = '#ffff00';
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.size * 0.6, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.restore();
+                    ctx.shadowBlur = 0;
                     return;
                 }
                 
@@ -3059,6 +3674,10 @@
             screenShake = { x: 0, y: 0, intensity: 0 };
             currentBoss = null;
             lastTime = Date.now();
+            skinAbilityCooldown = 0;
+            divineProtectionActive = false;
+            divineProtectionTimer = 0;
+            goldenTrailParticles = [];
             
             // Reset ability effects
             activeEffects = {
@@ -3436,6 +4055,79 @@
             }, 2500);
         }
 
+        // ==================== SKIN INFORMATION POPUP ====================
+        
+        function showSkinInfo(skinId) {
+            const skin = SKINS[skinId];
+            const popup = document.getElementById('skinInfoPopup');
+            const content = document.getElementById('skinInfoContent');
+            
+            let infoHTML = `
+                <div style="text-align:center;margin-bottom:20px;">
+                    <div style="font-size:28px;color:#ffd700;margin-bottom:10px;">${skin.name}</div>
+                    <div style="font-size:22px;color:#00ff00;margin-bottom:15px;">💰 Cost: ${skin.cost} Kills</div>
+                </div>
+                <div style="font-size:20px;color:#ffffff;margin-bottom:20px;">
+                    A unique character with special visual effects and gameplay style.
+                </div>
+            `;
+            
+            if (skin.ability) {
+                infoHTML += `
+                    <div class="skin-ability-info">
+                        <div class="skin-ability-title">✨ SPECIAL ABILITY ✨</div>
+                        <div class="skin-ability-desc"><span class="skin-ability-key">${skin.ability.key}</span> ${skin.ability.name}</div>
+                        <div class="skin-ability-desc">${skin.ability.description}</div>
+                        <div class="skin-ability-desc">⏱️ Cooldown: ${skin.ability.cooldown/1000} seconds</div>
+                        ${skin.ability.duration ? `<div class="skin-ability-desc">⌛ Duration: ${skin.ability.duration/1000} seconds</div>` : ''}
+                    </div>
+                `;
+            }
+            
+            if (skinId === 'angel') {
+                infoHTML += `
+                    <div style="margin-top:20px;font-size:18px;color:#ffff00;">
+                        ✨ Special Features:
+                        <ul style="margin-top:10px;padding-left:20px;">
+                            <li>Golden trail when moving</li>
+                            <li>Divine aura and halo</li>
+                            <li>Golden bow instead of sword</li>
+                            <li>Angelic wings</li>
+                        </ul>
+                    </div>
+                `;
+            } else if (skinId === 'dragonknight') {
+                infoHTML += `
+                    <div style="margin-top:20px;font-size:18px;color:#ff4500;">
+                        ✨ Special Features:
+                        <ul style="margin-top:10px;padding-left:20px;">
+                            <li>Dragon scale armor</li>
+                            <li>Dragon horns and tail</li>
+                            <li>Fireball shooting ability</li>
+                            <li>Fiery aura</li>
+                        </ul>
+                    </div>
+                `;
+            } else if (skinId === 'phantom') {
+                infoHTML += `
+                    <div style="margin-top:20px;font-size:18px;color:#9400d3;">
+                        ✨ Special Features:
+                        <ul style="margin-top:10px;padding-left:20px;">
+                            <li>Ghostly, translucent form</li>
+                            <li>Ethereal wispy effects</li>
+                            <li>Phantom daggers</li>
+                            <li>Teleportation ability</li>
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            content.innerHTML = infoHTML;
+            popup.style.display = 'block';
+        }
+
+        // ==================== SHOP SYSTEM ====================
+        
         function showShop() {
             showShopTab('upgrades');
             document.getElementById('shopMenu').style.display = 'flex';
@@ -3537,10 +4229,45 @@
                 if (!canBuy && !owned) div.style.opacity = '0.5';
                 if (equipped) div.style.border = '6px solid #00ff00';
                 
+                // Create skin preview based on skin type
+                let previewHTML = '';
+                if (skinId === 'dragonknight') {
+                    previewHTML = `
+                        <div style="width:60px;height:60px;background:${skin.armor};border-radius:50%;border:4px solid ${skin.accent};
+                            box-shadow:0 0 20px ${skin.accent};position:relative;">
+                            <div style="position:absolute;top:-10px;left:15px;width:30px;height:15px;background:${skin.dragonScale};border-radius:50%;"></div>
+                            <div style="position:absolute;top:-10px;right:15px;width:30px;height:15px;background:${skin.dragonScale};border-radius:50%;"></div>
+                        </div>
+                    `;
+                } else if (skinId === 'phantom') {
+                    previewHTML = `
+                        <div style="width:60px;height:60px;background:${skin.armor};border-radius:50%;border:4px solid ${skin.accent};
+                            box-shadow:0 0 20px ${skin.accent};position:relative;opacity:0.8;">
+                            <div style="position:absolute;top:15px;left:20px;width:20px;height:20px;background:${skin.accent};border-radius:50%;"></div>
+                            <div style="position:absolute;top:15px;right:20px;width:20px;height:20px;background:${skin.accent};border-radius:50%;"></div>
+                        </div>
+                    `;
+                } else if (skinId === 'angel') {
+                    previewHTML = `
+                        <div style="width:60px;height:60px;background:${skin.armor};border-radius:50%;border:4px solid ${skin.accent};
+                            box-shadow:0 0 20px ${skin.accent};position:relative;">
+                            <div style="position:absolute;top:-15px;left:20px;width:20px;height:20px;background:${skin.halo};border-radius:50%;"></div>
+                        </div>
+                    `;
+                } else {
+                    previewHTML = `
+                        <div style="width:60px;height:60px;background:${skin.armor};border-radius:50%;border:4px solid ${skin.accent};box-shadow:0 0 20px ${skin.accent};"></div>
+                    `;
+                }
+                
                 div.innerHTML = `
                     <div class="shop-title">${skin.name}</div>
                     <div class="skin-preview-container">
-                        <div style="width:60px;height:60px;background:${skin.armor};border-radius:50%;border:4px solid ${skin.accent};box-shadow:0 0 20px ${skin.accent};"></div>
+                        ${previewHTML}
+                    </div>
+                    <div style="display:flex;justify-content:center;gap:10px;margin-top:15px;">
+                        <button style="padding:8px 15px;font-size:14px;background:linear-gradient(135deg,#00ccff,#0099ff);" 
+                                onclick="event.stopPropagation();showSkinInfo('${skinId}')">🔮 INFO</button>
                     </div>
                     ${!owned ? `<div class="shop-cost">💰 ${skin.cost} Kills</div>` : ''}
                     ${owned && !equipped ? '<div class="shop-owned" style="color:#ffd700;">Click to Equip</div>' : ''}
@@ -3549,7 +4276,8 @@
                 
                 if (canBuy) {
                     div.style.cursor = 'pointer';
-                    div.onclick = () => {
+                    div.onclick = (e) => {
+                        if (e.target.tagName === 'BUTTON') return; // Don't trigger if clicking the info button
                         persistentData.totalKills -= skin.cost;
                         persistentData.ownedSkins.push(skinId);
                         persistentData.selectedSkin = skinId;
@@ -3560,7 +4288,8 @@
                     };
                 } else if (owned && !equipped) {
                     div.style.cursor = 'pointer';
-                    div.onclick = () => {
+                    div.onclick = (e) => {
+                        if (e.target.tagName === 'BUTTON') return;
                         persistentData.selectedSkin = skinId;
                         savePersistentData();
                         playSound('ability', 1.5, 0.8);
@@ -3825,6 +4554,7 @@
             }
             
             if (gameState === 'playing') {
+                // Regular abilities
                 if (e.key === '1' && playerStats.fireTornado && abilityCooldowns.fireTornado <= 0) {
                     abilityCooldowns.fireTornado = 1;
                 } else if (e.key === '2' && playerStats.lightningChain && abilityCooldowns.lightningChain <= 0) {
@@ -3835,6 +4565,15 @@
                     abilityCooldowns.meteorShower = 1;
                 } else if (e.key === '5' && playerStats.voidRift && abilityCooldowns.voidRift <= 0) {
                     abilityCooldowns.voidRift = 1;
+                }
+                
+                // Skin abilities
+                if (e.key.toLowerCase() === 'q' && player.skin.ability && player.skin.ability.key === 'Q') {
+                    player.activateSkinAbility();
+                } else if (e.key.toLowerCase() === 'e' && player.skin.ability && player.skin.ability.key === 'E') {
+                    player.activateSkinAbility();
+                } else if (e.key.toLowerCase() === 'r' && player.skin.ability && player.skin.ability.key === 'R') {
+                    player.activateSkinAbility();
                 }
             }
         });
@@ -3869,6 +4608,10 @@
 
         document.getElementById('closeSettings').addEventListener('click', function() {
             document.getElementById('settingsMenu').style.display = 'none';
+        });
+
+        document.getElementById('closeSkinInfoBtn').addEventListener('click', function() {
+            document.getElementById('skinInfoPopup').style.display = 'none';
         });
 
         function showSettings() {
